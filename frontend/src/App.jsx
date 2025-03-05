@@ -6,6 +6,7 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import CreateTask from "./pages/CreateTask";
+import EditTask from "./components/EditTask"; // Import the EditTask component
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -19,7 +20,7 @@ function App() {
     <BrowserRouter>
       <Header />
       <Routes>
-        {/* Protected Route for Home Page */}
+        {/* Protected Routes */}
         <Route
           path="/"
           element={
@@ -36,6 +37,16 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/edit-task/:taskId"
+          element={
+            <ProtectedRoute>
+              <EditTask />
+            </ProtectedRoute>
+          }
+        />
+        
+        {/* Public Routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
       </Routes>

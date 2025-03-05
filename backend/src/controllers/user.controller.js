@@ -132,43 +132,95 @@ const loginUser = async (req, res) => {
   
 
   //Logout the user
-  const logoutUser = async(req, res) => {
+  const logoutUser = async (req, res) => {
     logger.info("User logout endpoint hit...");
+
     try {
-      await User.findByIdAndUpdate(
-        console.log("request user id",req.user._id),
-        req.user._id,
-        {
-          $unset: {
-            refreshToken: 1 
-          }
-        },
-        {
-          new: true
+        // Extract refresh token from cookies
+        const refreshToken = req.cookies.refreshToken;
+        if (!refreshToken) {
+            return res.status(400).json({ success: false, message: "No refresh token provided" });
         }
-      )
-      
-      const options = {
-        httpOnly: true,
-        secure: true
-      }
-      
-      return res
-      .status(200)
-      .clearCookie("accessToken", options)
-      .clearCookie("refreshToken", options)
-      .json({
-        status:true,
-        message:"User logged out successfully"
-      })
+
+        // Find user by refresh token and remove it
+        const user = await User.findOneAndUpdate(
+            { refreshToken },
+            { $unset: { refreshToken: 1 } },
+            { new: true }
+        );
+
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found or already logged out" });
+        }
+
+        // Clear authentication cookies
+        const options = { httpOnly: true, secure: true, sameSite: "Strict" };
+        res.clearCookie("accessToken", options);
+        res.clearCookie("refreshToken", options);
+
+        logger.info(`User ${user._id} logged out successfully`);
+        return res.status(200).json({ status: true, message: "User logged out successfully" });
+
     } catch (error) {
-      logger.error("Logout error occured", error);
-      res.status(500).json({
-        success: false,
-        message: "Logout error occured"
-      })
+        logger.error("Logout error occurred", error);
+        res.status(500).json({ success: false, message: "Logout error occurred" });
     }
-    };
+};
+
+
+
+
+    const refreshAccessToken = async (req, res) => {
+      const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken;
+  
+      if (!incomingRefreshToken) {
+          logger.info("No refresh token provided");
+          return res.status(401).json({ status: false, message: "No refresh token provided" });
+      }
+  
+      try {
+          const decodedToken = jwt.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET);
+  
+          const user = await User.findById(decodedToken?._id); // ✅ Fixed missing `await`
+          if (!user) {
+              logger.info("User not found");
+              return res.status(401).json({ status: false, message: "Invalid refresh token or user" }); // ✅ Added `return`
+          }
+  
+          if (incomingRefreshToken !== user.refreshToken) {
+              logger.info("Invalid refresh token");
+              return res.status(401).json({ status: false, message: "Refresh token is invalid or expired" }); // ✅ Added `return`
+          }
+  
+          // Generate new tokens
+          const { accessToken, newRefreshToken } = await generateAccessAndRefreshToken(user._id);
+  
+          const options = {
+              httpOnly: true,
+              secure: true,
+              sameSite: "Strict",
+          };
+  
+          return res
+              .status(200)
+              .cookie("accessToken", accessToken, options)
+              .cookie("refreshToken", newRefreshToken, options) // ✅ Fixed refreshToken storage
+              .json({
+                  status: true,
+                  message: "Access token and refresh token generated successfully",
+                  accessToken,
+                  newRefreshToken,
+              });
+      } catch (error) {
+          logger.error("Refresh token error occurred", error);
+          return res.status(500).json({ status: false, message: "Refresh token error occurred" }); 
+      }
+  };
+
+
+    
+
+   
     
     
-export {registerUser,loginUser,logoutUser};
+export {registerUser,loginUser,logoutUser,refreshAccessToken};

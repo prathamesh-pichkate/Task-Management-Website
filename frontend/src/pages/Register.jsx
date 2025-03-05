@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 export default function Register() {
   const [formData, setFormData] = useState({});
   const [errorMessage, setErrorMessage] = useState(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { theme } = useSelector((state) => state.theme);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
@@ -42,8 +44,16 @@ export default function Register() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="w-full max-w-md bg-white p-6 rounded-lg shadow-md">
+    <div
+      className={`flex items-center justify-center min-h-screen transition-all ${
+        theme === "dark" ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900"
+      }`}
+    >
+      <div
+        className={`w-full max-w-md p-6 rounded-lg shadow-md transition-all ${
+          theme === "dark" ? "bg-gray-800 text-white" : "bg-white text-gray-900"
+        }`}
+      >
         <h2 className="text-2xl font-semibold text-center mb-4">Register</h2>
 
         {errorMessage && <p className="text-red-500 text-center">{errorMessage}</p>}
@@ -54,7 +64,11 @@ export default function Register() {
             id="fullname"
             placeholder="Full Name"
             onChange={handleChange}
-            className="w-full p-2 border rounded"
+            className={`w-full p-2 border rounded transition-all ${
+              theme === "dark"
+                ? "bg-gray-700 border-gray-600 text-white"
+                : "bg-gray-100 border-gray-300 text-black"
+            }`}
             required
           />
           <input
@@ -62,7 +76,11 @@ export default function Register() {
             id="username"
             placeholder="Username"
             onChange={handleChange}
-            className="w-full p-2 border rounded"
+            className={`w-full p-2 border rounded transition-all ${
+              theme === "dark"
+                ? "bg-gray-700 border-gray-600 text-white"
+                : "bg-gray-100 border-gray-300 text-black"
+            }`}
             required
           />
           <input
@@ -70,7 +88,11 @@ export default function Register() {
             id="email"
             placeholder="Email"
             onChange={handleChange}
-            className="w-full p-2 border rounded"
+            className={`w-full p-2 border rounded transition-all ${
+              theme === "dark"
+                ? "bg-gray-700 border-gray-600 text-white"
+                : "bg-gray-100 border-gray-300 text-black"
+            }`}
             required
           />
           <input
@@ -78,14 +100,22 @@ export default function Register() {
             id="password"
             placeholder="Password"
             onChange={handleChange}
-            className="w-full p-2 border rounded"
+            className={`w-full p-2 border rounded transition-all ${
+              theme === "dark"
+                ? "bg-gray-700 border-gray-600 text-white"
+                : "bg-gray-100 border-gray-300 text-black"
+            }`}
             required
           />
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition disabled:opacity-50"
+            className={`w-full py-2 rounded transition-all ${
+              theme === "dark"
+                ? "bg-blue-600 hover:bg-blue-700 text-white"
+                : "bg-blue-500 hover:bg-blue-600 text-white"
+            } disabled:opacity-50`}
           >
             {loading ? "Registering..." : "Sign Up"}
           </button>
@@ -93,7 +123,12 @@ export default function Register() {
 
         <p className="text-center mt-4 text-sm">
           Already have an account?{" "}
-          <Link to="/login" className="text-blue-600 hover:underline">
+          <Link
+            to="/login"
+            className={`transition-all ${
+              theme === "dark" ? "text-blue-400 hover:underline" : "text-blue-600 hover:underline"
+            }`}
+          >
             Sign in
           </Link>
         </p>
